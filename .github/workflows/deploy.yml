@@ -1,0 +1,234 @@
+# name: Build Push Deploy
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+#   workflow_dispatch:
+
+# jobs:
+
+#   pre-build:
+
+#     runs-on: ubuntu-latest
+
+#     steps:
+
+#       - name: Checkout Repository
+#         uses: actions/checkout@v4
+
+#       - name: Verify Folder Structure
+#         run: |
+#           test -d ui-web-app-reactjs
+#           test -d zuul-api-gateway
+#           test -d offers-microservice-spring-boot
+#           test -d shoes-microservice-spring-boot
+#           test -d wishlist-microservice-python
+#           test -d cart-microservice-nodejs
+
+#       - name: Verify Dockerfiles
+#         run: |
+#           test -f ui-web-app-reactjs/Dockerfile
+#           test -f zuul-api-gateway/Dockerfile
+#           test -f offers-microservice-spring-boot/Dockerfile
+#           test -f shoes-microservice-spring-boot/Dockerfile
+#           test -f wishlist-microservice-python/Dockerfile
+#           test -f cart-microservice-nodejs/Dockerfile
+
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ap-south-2
+
+#       - name: Verify AWS Identity
+#         run: aws sts get-caller-identity
+
+#       - name: Verify ECR Repository
+#         run: |
+#           aws ecr describe-repositories \
+#           --region ap-south-2
+
+
+
+#   build-and-publish:
+
+#     needs: pre-build
+
+#     runs-on: ubuntu-latest
+
+#     steps:
+
+#       - name: Checkout Repository
+#         uses: actions/checkout@v4
+
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ap-south-2
+
+#       - name: Login To Amazon ECR
+#         uses: aws-actions/amazon-ecr-login@v2
+
+#       - name: Docker Version
+#         run: docker --version
+
+#       # UI
+
+#       - name: Build UI Image
+#         run: |
+#           docker build \
+#           -t 663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:v1 \
+#           ./ui-web-app-reactjs
+
+#       - name: Push UI Image
+#         run: |
+#           docker push \
+#           663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:v1
+
+#       # ZUUL
+
+#       - name: Build Zuul Image
+#         run: |
+#           docker build \
+#           -t 663566123253.dkr.ecr.ap-south-2.amazonaws.com/zuul:v1 \
+#           ./zuul-api-gateway
+
+#       - name: Push Zuul Image
+#         run: |
+#           docker push \
+#           663566123253.dkr.ecr.ap-south-2.amazonaws.com/zuul:v1
+
+#       # OFFERS
+
+#       - name: Build Offers Image
+#         run: |
+#           docker build \
+#           -t 663566123253.dkr.ecr.ap-south-2.amazonaws.com/offers:v1 \
+#           ./offers-microservice-spring-boot
+
+#       - name: Push Offers Image
+#         run: |
+#           docker push \
+#           663566123253.dkr.ecr.ap-south-2.amazonaws.com/offers:v1 
+          
+#       # SHOES
+
+#       - name: Build Shoes Image
+#         run: |
+#           docker build \
+#           -t 663566123253.dkr.ecr.ap-south-2.amazonaws.com/shoes:v1 \
+#           ./shoes-microservice-spring-boot
+
+#       - name: Push Shoes Image
+#         run: |
+#           docker push \
+#           663566123253.dkr.ecr.ap-south-2.amazonaws.com/shoes:v1
+
+#       # WISHLIST
+
+#       - name: Build Wishlist Image
+#         run: |
+#           docker build \
+#           -t 663566123253.dkr.ecr.ap-south-2.amazonaws.com/wishlist:v1 \
+#           ./wishlist-microservice-python
+
+#       - name: Push Wishlist Image
+#         run: |
+#           docker push \
+#           663566123253.dkr.ecr.ap-south-2.amazonaws.com/wishlist:v1
+
+#       # CART
+
+#       - name: Build Cart Image
+#         run: |
+#           docker build \
+#           -t 663566123253.dkr.ecr.ap-south-2.amazonaws.com/cart:v1 \
+#           ./cart-microservice-nodejs
+
+#       - name: Push Cart Image
+#         run: |
+#           docker push \
+#           663566123253.dkr.ecr.ap-south-2.amazonaws.com/cart:v1
+
+#   deploy:
+
+#     needs: build-and-publish
+
+#     runs-on: ubuntu-latest
+
+#     steps:
+
+#     - name: Test SSH Connection
+#       uses: appleboy/ssh-action@v1.0.3
+#       with:
+#         host: ${{ secrets.EC2_HOST }}
+#         username: ${{ secrets.EC2_USERNAME }}
+#         key: ${{ secrets.EC2_SSH_KEY }}
+#         script: |
+#           echo "Connected Successfully"
+#           hostname
+#           whoami
+#           docker --version
+
+#     - name: Deploy Containers
+#       uses: appleboy/ssh-action@v1.0.3
+#       with:
+#         host: ${{ secrets.EC2_HOST }}
+#         username: ${{ secrets.EC2_USERNAME }}
+#         key: ${{ secrets.EC2_SSH_KEY }}
+
+#         script: |
+
+#           cd ~/microservices_docker-main
+
+#           git pull origin main
+
+#           docker compose config
+
+#           aws ecr get-login-password \
+#           --region ap-south-2 \
+#           | docker login \
+#           --username AWS \
+#           --password-stdin \
+#           663566123253.dkr.ecr.ap-south-2.amazonaws.com
+
+#           docker network inspect micro-net >/dev/null 2>&1 || \
+#           docker network create micro-net
+
+#           docker compose pull
+
+#           docker compose down
+
+#           docker compose up -d
+
+#           echo " RUNNING CONTAINERS "
+#           docker ps
+
+#           echo "========== ALL CONTAINERS =========="
+#           docker ps -a
+
+#           echo "========== NETWORK =========="
+#           docker network inspect micro-net
+
+#           echo "========== UI LOGS =========="
+#           docker logs ui --tail 20 || true
+
+#           echo "========== ZUUL LOGS =========="
+#           docker logs zuul --tail 20 || true
+
+#           echo "========== OFFERS LOGS =========="
+#           docker logs offers --tail 20 || true
+
+#           echo "========== SHOES LOGS =========="
+#           docker logs shoes --tail 20 || true
+
+#           echo "========== WISHLIST LOGS =========="
+#           docker logs wishlist --tail 20 || true
+
+#           echo "========== CART LOGS =========="
+#           docker logs cart --tail 20 || true
