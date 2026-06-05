@@ -46,7 +46,7 @@ services:
       - micro-net
 
   ui:
-    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:v1
+    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:v2
     container_name: ui
     ports:
       - "8080:8080"
