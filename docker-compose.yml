@@ -1,7 +1,7 @@
 services:
 
   offers:
-    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/offers:v1
+    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/offers:${OFFERS_TAG}
     container_name: offers
     ports:
       - "1001:1001"
@@ -9,7 +9,7 @@ services:
       - micro-net
 
   shoes:
-    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/shoes:v1
+    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/shoes:${SHOES_TAG}
     container_name: shoes
     ports:
       - "1002:1002"
@@ -17,7 +17,7 @@ services:
       - micro-net
 
   wishlist:
-    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/wishlist:v1
+    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/wishlist:${WISHLIST_TAG}
     container_name: wishlist
     ports:
       - "1003:1003"
@@ -25,7 +25,7 @@ services:
       - micro-net
 
   cart:
-    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/cart:v1
+    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/cart:${CART_TAG}
     container_name: cart
     ports:
       - "1004:1004"
@@ -33,7 +33,7 @@ services:
       - micro-net
 
   zuul:
-    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/zuul:v1
+    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/zuul:${ZUUL_TAG}
     container_name: zuul
     ports:
       - "9999:9999"
@@ -46,7 +46,7 @@ services:
       - micro-net
 
   ui:
-    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:v1
+    image: 663566123253.dkr.ecr.ap-south-2.amazonaws.com/ui:${UI_TAG}
     container_name: ui
     ports:
       - "8080:8080"
