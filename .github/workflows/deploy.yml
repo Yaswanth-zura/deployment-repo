@@ -42,6 +42,11 @@ jobs:
 
             git pull origin main
 
+            sed -i "s/^UI_TAG=.*/UI_TAG=${{ github.event.client_payload.tag }}/" .env
+
+            echo "===== UPDATED ENV ====="
+            cat .env
+
             aws ecr get-login-password \
             --region ap-south-2 \
             | docker login \
