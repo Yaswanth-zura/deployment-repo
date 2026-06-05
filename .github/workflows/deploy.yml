@@ -2,15 +2,16 @@ name: Deploy Application
 
 on:
 
-  push:
-    branches:
-      - main
-
   workflow_dispatch:
 
   repository_dispatch:
     types:
       - deploy-ui
+      - deploy-zuul
+      - deploy-offers
+      - deploy-shoes
+      - deploy-wishlist
+      - deploy-cart
 
 jobs:
 
@@ -42,9 +43,48 @@ jobs:
 
             git pull origin main
 
-            sed -i "s/^UI_TAG=.*/UI_TAG=${{ github.event.client_payload.tag }}/" .env
+            SERVICE="${{ github.event.client_payload.service }}"
+            TAG="${{ github.event.client_payload.tag }}"
 
-            echo "===== UPDATED ENV ====="
+            echo "==============================="
+            echo "SERVICE = $SERVICE"
+            echo "TAG     = $TAG"
+            echo "==============================="
+
+            case "$SERVICE" in
+
+              ui)
+                sed -i "s/^UI_TAG=.*/UI_TAG=$TAG/" .env
+                ;;
+
+              zuul)
+                sed -i "s/^ZUUL_TAG=.*/ZUUL_TAG=$TAG/" .env
+                ;;
+
+              offers)
+                sed -i "s/^OFFERS_TAG=.*/OFFERS_TAG=$TAG/" .env
+                ;;
+
+              shoes)
+                sed -i "s/^SHOES_TAG=.*/SHOES_TAG=$TAG/" .env
+                ;;
+
+              wishlist)
+                sed -i "s/^WISHLIST_TAG=.*/WISHLIST_TAG=$TAG/" .env
+                ;;
+
+              cart)
+                sed -i "s/^CART_TAG=.*/CART_TAG=$TAG/" .env
+                ;;
+
+              *)
+                echo "Unknown Service: $SERVICE"
+                exit 1
+                ;;
+
+            esac
+
+            echo "========== UPDATED ENV =========="
             cat .env
 
             aws ecr get-login-password \
@@ -61,4 +101,8 @@ jobs:
 
             docker compose up -d
 
+            echo "========== RUNNING CONTAINERS =========="
             docker ps
+
+            echo "========== COMPOSE CONFIG =========="
+            docker compose config
