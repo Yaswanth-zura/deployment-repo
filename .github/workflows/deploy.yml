@@ -1,11 +1,16 @@
 name: Deploy Application
 
 on:
+
   push:
     branches:
       - main
 
   workflow_dispatch:
+
+  repository_dispatch:
+    types:
+      - deploy-ui
 
 jobs:
 
@@ -14,6 +19,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: Print Payload
+        run: |
+          echo "Service:"
+          echo "${{ github.event.client_payload.service }}"
+
+          echo "Tag:"
+          echo "${{ github.event.client_payload.tag }}"
 
       - name: Deploy To EC2
         uses: appleboy/ssh-action@v1.0.3
